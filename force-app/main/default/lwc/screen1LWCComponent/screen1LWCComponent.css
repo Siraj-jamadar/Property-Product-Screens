@@ -1,0 +1,19 @@
+.dummyClass{color:black;}
+
+.radio-combo-inline .slds-form-element__control .slds-radio
+{
+    display: inline-block !important;
+}
+
+.create-property-css {
+    margin-top: 40px;
+    border-bottom: 2px;
+}
+
+.css-for-property {
+    border-bottom: 1rem solid;
+}
+
+.pricebook-picklist-css {
+    margin-top: 2rem;
+}

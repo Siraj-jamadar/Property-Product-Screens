@@ -1,0 +1,153 @@
+<template>
+	<div class="spinner">
+		<template if:true={isLoading}>
+			<lightning-spinner alternative-text="Loading" variant="brand" size="medium"></lightning-spinner>
+		</template>
+	</div>
+    <lightning-quick-action-panel header="Save Property and Product">
+		
+		<template if:true={saveProperty}>
+            <div>
+				<lightning-input type="number" name="input" value={inputvalue} label="How many properties do you have:"
+					onchange={handleQuantity} style="width:50%;"></lightning-input>
+			</div>
+			  <hr>
+			  <div>
+				  <lightning-radio-group class="radio-combo-inline" name="radioGroup"
+					  label="Are there property details that are common to all of them?" options={options} value={value}
+					  type="radio" onchange={handleChoice}></lightning-radio-group>
+			  </div>
+  
+			  <!-- checkbox yes code -->
+			  <template if:true={fieldVisible1}>
+				<lightning-record-edit-form key={component.id}  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessSameDetails}>
+					<lightning-messages> </lightning-messages>
+					<lightning-layout multiple-rows>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Name" variant="label-stacked" required>
+							</lightning-input-field>
+						</lightning-layout-item>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Client_Tax_Filing_Deadline__c" variant="label-stacked">
+							</lightning-input-field>
+						</lightning-layout-item>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Client_Request_Date__c" variant="label-stacked">
+							</lightning-input-field>
+						</lightning-layout-item>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Type__c" variant="label-stacked">
+							</lightning-input-field>
+						</lightning-layout-item>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Primary_Building_Function__c" variant="label-stacked">
+							</lightning-input-field>
+						</lightning-layout-item>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Owning_Entity__c" variant="label-stacked">
+							</lightning-input-field>
+						</lightning-layout-item>
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Operating_Entity__c" variant="label-stacked">
+							</lightning-input-field>
+						</lightning-layout-item>
+
+						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
+							<lightning-input-field   field-name="Opportunity__c" value={OppId} variant="label-stacked" disabled="true">
+							</lightning-input-field>
+						</lightning-layout-item>
+					</lightning-layout>
+				</lightning-record-edit-form>
+  
+  
+			  </template>
+  
+			  <!-- checkbox no code -->
+			  <template if:true={fieldVisible2}>
+				<template for:each={components} for:item="component">
+					<lightning-record-edit-form key={component.id} class="css-for-property"  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessDiffDetails}>
+						<lightning-messages> </lightning-messages>
+						<lightning-layout multiple-rows>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Name" variant="label-stacked" required>
+								</lightning-input-field>
+							</lightning-layout-item>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Client_Tax_Filing_Deadline__c" variant="label-stacked">
+								</lightning-input-field>
+							</lightning-layout-item>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Client_Request_Date__c" variant="label-stacked">
+								</lightning-input-field>
+							</lightning-layout-item>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Type__c" variant="label-stacked">
+								</lightning-input-field>
+							</lightning-layout-item>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Primary_Building_Function__c" variant="label-stacked">
+								</lightning-input-field>
+							</lightning-layout-item>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Owning_Entity__c" variant="label-stacked">
+								</lightning-input-field>
+							</lightning-layout-item>
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Operating_Entity__c" variant="label-stacked">
+								</lightning-input-field>
+							</lightning-layout-item>
+
+							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
+								<lightning-input-field   field-name="Opportunity__c" value={OppId} variant="label-stacked" disabled="true">
+								</lightning-input-field>
+							</lightning-layout-item>
+						</lightning-layout>
+					</lightning-record-edit-form>
+
+				</template>
+			  </template>
+			</template>
+             <div class="pricebook-picklist-css">
+				<lightning-combobox name="pricebooks1" label="What Pricebook?" value={pricebookId} options={pricebookoptions}
+				onchange={handlePricebookchoice} disabled={selectPricebookdisabled}>
+			    </lightning-combobox>
+				<div>
+					<lightning-radio-group name="SameradioGroup" label="Do they all have the same products?"
+						options={options} value={value} type="radio" onchange={handleProdChoice} disabled={radioGroupForProductDisabled}>
+					</lightning-radio-group>
+				</div>
+			 </div>
+			
+			<template if:true={saveProduct}>
+					<!--<lightning-Card title="List of possible Products:" icon-name="standard:Product2">
+						div if:true={productList}-->
+		
+						<lightning-datatable data={productList} columns={columns} key-field="id"
+							onrowselection={getSelectedProdRec}></lightning-datatable>
+			</template>
+					<!--/div
+				</lightning-Card>-->
+        <div slot="footer">
+			<template if:true={saveProperty}>
+				<template if:true={fieldVisible1}>
+					<lightning-button variant="brand-outline" label="Save Property and Add Product" title="Next Step"
+							onclick={save} c-child-component record-id={recordId}
+							class="slds-m-left_x-small"></lightning-button>
+				</template>
+				<template if:true={fieldVisible2}>
+					<lightning-button variant="brand-outline" label="Save Property and Add Product" title="Next Step 1"
+							onclick={saveMultiple} c-child-component record-id={recordId}
+							class="slds-m-left_x-small"></lightning-button>
+				</template>
+			</template>
+			<template if:true={saveProduct}>
+				<template if:true={sameProductVisibility}>
+					<lightning-button variant="brand-outline" label="Save Product and Finish" title="Next Step"
+					 onclick={saveSameProd} c-child-component record-id={recordId} class="slds-m-left_x-small"></lightning-button>
+				</template>
+
+			</template>
+			
+        </div>
+    </lightning-quick-action-panel>
+</template>
