@@ -10,7 +10,11 @@ import InsertProperty from '@salesforce/apex/SaveProperty.InsertProperty';
 import getPriceBook from '@salesforce/apex/SaveProperty.getPriceBook';
 import GetAllProducts from '@salesforce/apex/SaveProperty.GetAllProducts';
 import insertProduct from '@salesforce/apex/SaveProperty.insertProduct';
+import saveDiffProducts from '@salesforce/apex/SaveProperty.saveDiffProducts'; 
+import getPropertyDetials from '@salesforce/apex/SaveProperty.getPropertyDetials';
 import getPricebookfromOpp from '@salesforce/apex/SaveProperty.getPricebookfromOpp';
+
+import TickerSymbol from '@salesforce/schema/Account.TickerSymbol';
 
 const columns = [
     {
@@ -44,17 +48,26 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     @track properties = [];
     @track diffPropIDs = [];
     @track priceOptions;
-    @track  pricebookId;
+    @track pricebookId;
     @track sameProductVisibility = false;
+    @track saveDiffProductVisibility = false;
+    @track productSaveDisabled = false;
     @track columns = columns;
     @track productList = [];
-    @track  selectedProdlist= [];
-    @track  samePropid;
+    @track selectedProdlist= [];
+    @track samePropid;
+    @track samePropidMap = [];
+    @track diffPropidMap = [];
     @track propertyList;
     priceBookData;
     @track radioGroupForProductDisabled = true;
+    @track saveDiffProdForProperty = false;
     @track PropertyNameToSaveProduct = [];
     wireData;
+    @track currentSaveValue = 1;
+    @track saveProdButtonLabel = '';
+    @track diffPropertyId;
+    @track showPropName;
 
 
     connectedCallback(){
@@ -185,12 +198,18 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                 })
                 .then(result => {
                     let arrForProp=[];
-                    arrForProp.push({label: result.Name, value: result.Id})
-                    console.log('results of same prop --->'+result)
-                    this.samePropid= result;
+                    for (var i = 0; i < result.length; i++) {
+                        arrForProp.push({ value: result[i].Id, label: result[i].Name })
+                    }
+                    this.samePropidMap = arrForProp
+
+                    let arrOfPropId = [];
+                    for (var i = 0; i < result.length; i++) {
+                        arrOfPropId.push(result[i].Id );
+                    }
+                    this.samePropid= arrOfPropId;
                     this.isLoading = false; 
-                    this.PropertyNameToSaveProduct = result.Name;
-                    console.log('property Name =='+result.Name )
+                    console.log('samePropid =='+JSON.stringify(this.samePropid) );
 
                     const toastEvent = new ShowToastEvent({
                     title: 'Success!',
@@ -229,6 +248,22 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     handleSuccessDiffDetails(event){
         const PropIDs = event.detail.id;
         this.diffPropIDs.push(PropIDs);
+        console.log('Id---->'+this.diffPropIDs);
+        getPropertyDetials({
+            propertyList:JSON.stringify(this.diffPropIDs)
+        })
+        .then(result => {
+            console.log('Enetered here')
+            let arrForProp=[];
+            for (var i = 0; i < result.length; i++) {
+                arrForProp.push({ value: result[i].Id, label: result[i].Name })
+            }
+            this.diffPropidMap = arrForProp;
+            console.log('Array-->'+JSON.stringify(this.diffPropidMap));
+        })
+        .catch(error => {
+            console.log('Error retrieving data. '+error);
+        })
         this.saveProperty=false;
         this.saveProduct = true;
         this.isLoading = false; 
@@ -261,10 +296,35 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         if (selectedOption == 'option1') {
             this.sameProductVisibility = true;
             this.saveProduct = true;
+            this.saveDiffProdForProperty = false;
         }
         else {
             this.sameProductVisibility = false;
-            this.saveProduct = true;
+            this.saveProduct = false;
+            this.saveDiffProdForProperty=true;
+            this.saveDiffProductVisibility=true;
+            this.saveProdButtonLabel = 'Save product and Next';
+            console.log('Button label --- >'+this.saveProdButtonLabel);
+            if(this.fieldVisible1 == true){
+                this.diffPropertyId = this.samePropid[0];
+                const keys = Object.keys(this.samePropidMap);
+                const key = keys.find(k => this.samePropidMap[k] === this.diffPropertyId);
+             if(key){
+                this.showPropName = this.samePropidMap[key]; 
+                }
+            }else if(this.fieldVisible2 === true){
+                this.diffPropertyId = this.diffPropIDs[0];
+                console.log('First Property Id --- >'+this.diffPropertyId);
+                const keys = Object.keys(this.diffPropidMap);
+                const key = keys.find(k => this.diffPropidMap[k] === this.diffPropertyId);
+             if(key){
+                this.showPropName = this.diffPropidMap[key]; 
+                }
+            }
+            
+            
+           // this.showPropName = Object.entries(this.samePropidMap).find(([, v]) => v === this.diffPropertyId)[0];
+            console.log('Property Name--->'+this.showPropName);
         }
     }
 
@@ -277,18 +337,47 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             ids = ids + ',' + currentItem.Id;
             Name = Name + ',' + currentItem.Name;
           });
-          this.lstSelectedRecords = selectedRecords;
-          this.NrProducts = selectedRecords.length;
-          //alert(this.selectedIds);
           let selectedIdsArray = [];
           for (const element of selectedRecords) {
             //console.log('elementid', element.Id);
             selectedIdsArray.push(element.Id);
           }
           this.selectedProdlist = selectedIdsArray;
+          console.log('Selected Pro id--->'+this.selectedProdlist);
         }
     
       }
+
+    //   getDiffSelectedProdRec() {
+    //     const propIdVsProdIdmap = new Map();
+    //     this.template.querySelector("lightning-datatable").forEach(element => {
+    //         let selectedRecords = element.getSelectedRows();  
+    //         console.log('Entered here');
+    //         console.log('Selected row --->'+selectedRecords);
+    //         if (selectedRecords.length > 0) {
+    //             let ids = '';
+    //             let Name = '';
+    //             selectedRecords.forEach(currentItem => {
+    //               ids = ids + ',' + currentItem.Id;
+    //               Name = Name + ',' + currentItem.Name;
+    //             });
+    //             let selectedIdsArray = [];
+    //             for (const element of selectedRecords) {
+    //               //console.log('elementid', element.Id);
+    //               selectedIdsArray.push(element.Id);
+    //             }
+    //             for(let i=0; i<this.samePropid.length; i++){
+    //                 propIdVsProdIdmap.set(this.samePropid[i],selectedIdsArray)
+    //             }
+    //         }
+    //         console.log('Map values--->'+JSON.stringify(propIdVsProdIdmap));
+            
+    //     });
+        
+    //       this.selectedProdlist = selectedIdsArray;
+    //       console.log('Selected Pro id--->'+this.selectedProdlist);
+    
+    //   }
 
     saveSameProd(){
         if(this.fieldVisible1 === true){
@@ -307,10 +396,57 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         .then(result =>{
             refreshApex(this.wireData);
             console.log('Result --->'+JSON.stringify(result));
+            const toastEvent = new ShowToastEvent({
+                title: 'Success!',
+                message: 'Product Record Inserted successfully',
+                variant: 'success'
+            });
+    
+            this.dispatchEvent(toastEvent);
+            this.closeAction();
         })
         .catch(error=>{
             console.log('Result --->'+JSON.stringify(error));
         })
     }
 
+    saveDiffPropVsProd(){
+        
+            saveDiffProducts({
+                priceBookId: this.pricebookId, 
+                productlist: JSON.stringify(this.selectedProdlist), 
+                propertyList:JSON.stringify(this.diffPropertyId),
+                oppId: this.OppId
+            })
+            .then(results =>{
+                console.log('Result --->'+JSON.stringify(results));
+                if(this.fieldVisible1 == true){
+                    this.diffPropertyId = this.samePropid[this.currentSaveValue];
+                }else if(this.fieldVisible2 === true){
+                    this.diffPropertyId = this.diffPropIDs[this.currentSaveValue];
+                }
+                //this.showPropName =  Object.entries(this.samePropidMap).find(([, v]) => v === this.diffPropertyId)[0];
+                if(this.currentSaveValue <= this.inputvalue){
+                    this.currentSaveValue += 1;
+                }
+                console.log('current counter value---->'+this.currentSaveValue)
+                if(this.currentSaveValue == this.inputvalue){
+                    this.saveProdButtonLabel = 'Save Product and Finish';
+                }else if(this.currentSaveValue > this.inputvalue){
+                    this.productSaveDisabled = true;
+                    const toastEvent = new ShowToastEvent({
+                        title: 'Success!',
+                        message: 'Product Record Inserted successfully',
+                        variant: 'success'
+                    });
+            
+                    this.dispatchEvent(toastEvent);
+                    this.closeAction();
+                }   
+            })
+            .catch(error=>{
+                console.log('Result --->'+JSON.stringify(error));
+            })
+         
+    }
 }

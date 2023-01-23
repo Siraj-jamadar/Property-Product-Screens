@@ -103,7 +103,7 @@
 							</lightning-layout-item>
 						</lightning-layout>
 					</lightning-record-edit-form>
-
+						
 				</template>
 			  </template>
 			</template>
@@ -119,11 +119,16 @@
 			 </div>
 			
 			<template if:true={saveProduct}>
-					<!--<lightning-Card title="List of possible Products:" icon-name="standard:Product2">
-						div if:true={productList}-->
-		
 						<lightning-datatable data={productList} columns={columns} key-field="id"
 							onrowselection={getSelectedProdRec}></lightning-datatable>
+			</template>
+				<template if:true={saveDiffProdForProperty}>
+					<div class="property-name-for-product">
+						<br/><br/>
+						<p>Select products for <strong>{showPropName}</strong></p><br/>
+					</div>
+					<lightning-datatable data={productList} columns={columns} key-field="id"
+								onrowselection={getSelectedProdRec}></lightning-datatable>
 			</template>
 					<!--/div
 				</lightning-Card>-->
@@ -145,8 +150,12 @@
 					<lightning-button variant="brand-outline" label="Save Product and Finish" title="Next Step"
 					 onclick={saveSameProd} c-child-component record-id={recordId} class="slds-m-left_x-small"></lightning-button>
 				</template>
-
 			</template>
+				<template if:true={saveDiffProductVisibility}>
+					<lightning-button variant="brand-outline" label={saveProdButtonLabel} title="Next Step"
+					 onclick={saveDiffPropVsProd} c-child-component record-id={recordId} class="slds-m-left_x-small" disabled={productSaveDisabled}></lightning-button>
+				</template>
+				
 			
         </div>
     </lightning-quick-action-panel>

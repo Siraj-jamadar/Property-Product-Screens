@@ -7,13 +7,16 @@
 
 .create-property-css {
     margin-top: 40px;
-    border-bottom: 2px;
 }
 
 .css-for-property {
-    border-bottom: 1rem solid;
+    border-bottom: 1px solid grey;
 }
 
 .pricebook-picklist-css {
     margin-top: 2rem;
+}
+.property-name-for-product {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
