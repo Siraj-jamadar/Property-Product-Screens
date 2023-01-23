@@ -65,9 +65,9 @@
 			  <!-- checkbox no code -->
 			  <template if:true={fieldVisible2}>
 				<template for:each={components} for:item="component">
-					<lightning-record-edit-form key={component.id} class="css-for-property"  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessDiffDetails}>
+					<lightning-record-edit-form key={component.id}  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessDiffDetails}>
 						<lightning-messages> </lightning-messages>
-						<lightning-layout multiple-rows>
+						<lightning-layout multiple-rows class="css-for-property ">
 							<lightning-layout-item   size="12" large-device-size="3" padding="around-small">
 								<lightning-input-field   field-name="Name" variant="label-stacked" required>
 								</lightning-input-field>
@@ -124,14 +124,13 @@
 			</template>
 				<template if:true={saveDiffProdForProperty}>
 					<div class="property-name-for-product">
-						<br/><br/>
+						<br/>
 						<p>Select products for <strong>{showPropName}</strong></p><br/>
 					</div>
 					<lightning-datatable data={productList} columns={columns} key-field="id"
 								onrowselection={getSelectedProdRec}></lightning-datatable>
 			</template>
-					<!--/div
-				</lightning-Card>-->
+
         <div slot="footer">
 			<template if:true={saveProperty}>
 				<template if:true={fieldVisible1}>
@@ -155,8 +154,6 @@
 					<lightning-button variant="brand-outline" label={saveProdButtonLabel} title="Next Step"
 					 onclick={saveDiffPropVsProd} c-child-component record-id={recordId} class="slds-m-left_x-small" disabled={productSaveDisabled}></lightning-button>
 				</template>
-				
-			
         </div>
     </lightning-quick-action-panel>
 </template>

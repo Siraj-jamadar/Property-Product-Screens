@@ -48,7 +48,6 @@ public class SaveProperty {
 
     @AuraEnabled(cacheable=true)
     public static Pricebook2 getPricebookfromOpp(String oppId) {
-        System.debug('opportunity Id --->>>'+oppId);
         Opportunity oppRec = [Select id,PriceBook2Id from Opportunity where Id=:oppId limit 1];
         if(oppRec.PriceBook2Id!=null){
             Pricebook2 pricebook = [Select Id,Name from Pricebook2 where id=:oppRec.PriceBook2Id];
@@ -175,6 +174,15 @@ public class SaveProperty {
         }else{
             return null;
         }
+    }
+
+
+    @AuraEnabled(cacheable=true)
+    public static List<OpportunityLineItem> getOppLineItemDetails(String oppId, String propertyIdList ){
+        system.debug('Property id--->'+propertyIdList);
+        //and Property__c In :propertyIdList
+        List<OpportunityLineItem> OppLineItemList = [Select Id,Product2Id,OpportunityId,Property__c,Quantity,UnitPrice from OpportunityLineItem where OpportunityId=: oppId ];
+        return OppLineItemList;
     }
     
     public class getPriceBookInfowrapper{
