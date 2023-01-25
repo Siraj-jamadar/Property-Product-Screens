@@ -19,8 +19,8 @@
 			  </div>
   
 			  <!-- checkbox yes code -->
-			  <template if:true={fieldVisible1}>
-				<lightning-record-edit-form key={component.id}  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessSameDetails}>
+			  <template if:true={samePropertyVisiblity}>
+				<lightning-record-edit-form key={component.id}  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessSamePropDetails}>
 					<lightning-messages> </lightning-messages>
 					<lightning-layout multiple-rows>
 						<lightning-layout-item   size="6" large-device-size="3" padding="around-small">
@@ -63,7 +63,7 @@
 			  </template>
   
 			  <!-- checkbox no code -->
-			  <template if:true={fieldVisible2}>
+			  <template if:true={diffPropertyVisiblity}>
 				<template for:each={components} for:item="component">
 					<lightning-record-edit-form key={component.id}  object-api-name="Property__c" onload={handleOnload} onsuccess={handleSuccessDiffDetails}>
 						<lightning-messages> </lightning-messages>
@@ -131,16 +131,29 @@
 								onrowselection={getSelectedProdRec}></lightning-datatable>
 			</template>
 
+			<!-- Opportunity Line Item Code -->
+			<template if:true={oppLineItemVisibility}>
+				<lightning-datatable class="my-data-table" key-field="Id"
+				                     data={oppLineItemList} 
+									 columns={OppLineItemColumns} 
+									 onsave={handleOppLineItemSave}
+									 draft-values={saveDraftValues} 
+									 hide-checkbox-column 
+									 show-row-number-column>
+ 				</lightning-datatable>
+			</template>
+
+
         <div slot="footer">
 			<template if:true={saveProperty}>
-				<template if:true={fieldVisible1}>
+				<template if:true={samePropertyVisiblity}>
 					<lightning-button variant="brand-outline" label="Save Property and Add Product" title="Next Step"
-							onclick={save} c-child-component record-id={recordId}
+							onclick={saveSameProperty} c-child-component record-id={recordId}
 							class="slds-m-left_x-small"></lightning-button>
 				</template>
-				<template if:true={fieldVisible2}>
+				<template if:true={diffPropertyVisiblity}>
 					<lightning-button variant="brand-outline" label="Save Property and Add Product" title="Next Step 1"
-							onclick={saveMultiple} c-child-component record-id={recordId}
+							onclick={saveDiffProperty} c-child-component record-id={recordId}
 							class="slds-m-left_x-small"></lightning-button>
 				</template>
 			</template>
@@ -150,9 +163,13 @@
 					 onclick={saveSameProd} c-child-component record-id={recordId} class="slds-m-left_x-small"></lightning-button>
 				</template>
 			</template>
-				<template if:true={saveDiffProductVisibility}>
+				<template if:true={diffProductVisibility}>
 					<lightning-button variant="brand-outline" label={saveProdButtonLabel} title="Next Step"
 					 onclick={saveDiffPropVsProd} c-child-component record-id={recordId} class="slds-m-left_x-small" disabled={productSaveDisabled}></lightning-button>
+				</template>
+				<template if:true={finishVisibility}>
+					<lightning-button variant="brand-outline" label="Finish" title="Finish"
+					 onclick={FinishAndClose} c-child-component record-id={recordId} class="slds-m-left_x-small"></lightning-button>
 				</template>
         </div>
     </lightning-quick-action-panel>

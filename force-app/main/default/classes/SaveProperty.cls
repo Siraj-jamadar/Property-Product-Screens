@@ -164,7 +164,6 @@ public class SaveProperty {
     @AuraEnabled
 	public static List<Property__c> getPropertyDetials(String propertyList){
         List<Property__c> propList = new List<Property__c>();
-        system.debug('Property id--->'+propertyList);
         propertyList = propertyList.replace('[','').replace(']',''); //Taking out ( and )
         propertyList = propertyList.replace('\"',''); //Taking out '
         List<String> propidList = propertyList.split(',');  
@@ -177,11 +176,13 @@ public class SaveProperty {
     }
 
 
-    @AuraEnabled(cacheable=true)
-    public static List<OpportunityLineItem> getOppLineItemDetails(String oppId, String propertyIdList ){
-        system.debug('Property id--->'+propertyIdList);
-        //and Property__c In :propertyIdList
-        List<OpportunityLineItem> OppLineItemList = [Select Id,Product2Id,OpportunityId,Property__c,Quantity,UnitPrice from OpportunityLineItem where OpportunityId=: oppId ];
+    @AuraEnabled
+    public static List<OpportunityLineItem> getOppLineItemDetails(String oppid, String propertyList ){
+        propertyList = propertyList.replace('[','').replace(']',''); //Taking out ( and )
+        propertyList = propertyList.replace('\"',''); //Taking out '
+        List<String> propidList = propertyList.split(',');
+        //and Property__c In :propidList
+        List<OpportunityLineItem> OppLineItemList = [Select Id,Product2.Name,Opportunity.Name,Property__r.Name,Quantity,UnitPrice from OpportunityLineItem where OpportunityId=: oppId AND Property__c In :propidList];
         return OppLineItemList;
     }
     

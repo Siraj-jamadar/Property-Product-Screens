@@ -13,8 +13,39 @@ import insertProduct from '@salesforce/apex/SaveProperty.insertProduct';
 import saveDiffProducts from '@salesforce/apex/SaveProperty.saveDiffProducts'; 
 import getPropertyDetials from '@salesforce/apex/SaveProperty.getPropertyDetials';
 import getPricebookfromOpp from '@salesforce/apex/SaveProperty.getPricebookfromOpp';
+import getOppLineItemDetails from '@salesforce/apex/SaveProperty.getOppLineItemDetails';
+import { updateRecord } from 'lightning/uiRecordApi';
 
-import TickerSymbol from '@salesforce/schema/Account.TickerSymbol';
+
+const OppLineItemColumns = [
+    {
+        label: 'Product',
+        fieldName: 'productName',
+        type: 'text',
+        //typeAttributes: { label: { fieldName: 'Product2.Name' }, target: '_blank' }
+    },{
+        label: 'Opportunity',
+        fieldName: 'OpportunityName',
+        type: 'text',
+       // typeAttributes: { label: { fieldName: 'Opportunity.Name' }, target: '_blank' }
+    }, {
+        label: 'Property',
+        fieldName: 'propertyName',
+        type: 'text',
+       // typeAttributes: { label: { fieldName: 'Property__r.Name' }, target: '_blank' }
+    },
+     {
+        label: 'Quantity',
+        fieldName: 'Quantity',
+        type: 'double',
+        editable: true
+    }, {
+        label: 'UnitPrice',
+        fieldName: 'UnitPrice',
+        type: 'currency',
+        editable: true
+    }
+];
 
 const columns = [
     {
@@ -33,23 +64,24 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     @api OppId;
     @track propertyid;
     @track name;
-    @track fieldVisible1 = false;
-    @track fieldVisible2 = false;
+    @track samePropertyVisiblity = false;
+    @track diffPropertyVisiblity = false;
     @track saveProperty=true;
     @track saveProduct = false;
     @track input;
     @track inputvalue;
     @track isLoading = false;
     @track selectPricebookdisabled = true;
-        //data = [];
+    //data = [];
     @track properties = [];
     @track diffPropIDs = [];
     @track priceOptions;
     @track pricebookId;
     @track sameProductVisibility = false;
-    @track saveDiffProductVisibility = false;
+    @track diffProductVisibility = false;
     @track productSaveDisabled = false;
     @track columns = columns;
+    @track OppLineItemColumns = OppLineItemColumns;
     @track productList = [];
     @track selectedProdlist= [];
     @track samePropid;
@@ -65,9 +97,13 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     @track saveProdButtonLabel = '';
     @track diffPropertyId;
     @track showPropName;
-    @track saveOppLineItemVisibility = false;
+    @track oppLineItemVisibility = false;
+    @track oppLineItemList;
+    @track oppLineItemListForName;
     propIdListonOppLineItem = [];
     oppLineItemOppId;
+    saveDraftValues;
+    @track finishVisibility = false;
 
 
     connectedCallback(){
@@ -139,17 +175,16 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         const selectedOption = event.detail.value;
         this.saveProperty = true;
         if (selectedOption == 'option1') {
-            this.fieldVisible1 = true;
-            this.fieldVisible2 = false;
+            this.samePropertyVisiblity = true;
+            this.diffPropertyVisiblity = false;
             
         }
         else {
-            this.fieldVisible1 = false;
-            this.fieldVisible2 = true;
+            this.samePropertyVisiblity = false;
+            this.diffPropertyVisiblity = true;
         }
     }
     handleQuantity(event) {
-
         this.inputvalue = event.target.value;
     }
 
@@ -158,7 +193,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
       }
 
 
-    saveMultiple () {
+    saveDiffProperty () {
         this.isLoading = true; 
         let isVal = true;
         this.template.querySelectorAll('lightning-input-field').forEach(element => {
@@ -174,7 +209,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         }
     }
 
-    save () {
+    saveSameProperty () {
         this.isLoading = true; 
         let isVal = true;
         this.template.querySelectorAll('lightning-input-field').forEach(element => {
@@ -191,7 +226,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         this.radioGroupForProductDisabled = false;
     }
 
-    handleSuccessSameDetails (event) {
+    handleSuccessSamePropDetails (event) {
         this.propertyid= event.detail.id;
         if(this.propertyid !== undefined){
                 InsertProperty({
@@ -295,22 +330,22 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             this.sameProductVisibility = true;
             this.saveProduct = true;
             this.saveDiffProdForProperty = false;
-            this.saveDiffProductVisibility=false;
+            this.diffProductVisibility=false;
         }
         else {
             this.sameProductVisibility = false;
             this.saveProduct = false;
             this.saveDiffProdForProperty=true;
-            this.saveDiffProductVisibility=true;
+            this.diffProductVisibility=true;
             this.saveProdButtonLabel = 'Save product and Next';
-            if(this.fieldVisible1 == true){
+            if(this.samePropertyVisiblity == true){
                 this.diffPropertyId = this.samePropid[0];
                 const keys = Object.keys(this.samePropidMap);
                 const key = keys.find(k => this.samePropidMap[k].value === this.diffPropertyId);
              if(key){
                 this.showPropName = JSON.stringify(this.samePropidMap[key].label); 
                 }
-            }else if(this.fieldVisible2 == true){
+            }else if(this.diffPropertyVisiblity == true){
                 this.diffPropertyId = this.diffPropIDs[0];
                 const keys = Object.keys(this.diffPropidMap);
                 const key = keys.find(k => this.diffPropidMap[k].value === this.diffPropertyId);
@@ -341,9 +376,9 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
 
     saveSameProd(){
         this.isLoading = true;
-        if(this.fieldVisible1 === true){
+        if(this.samePropertyVisiblity === true){
             this.propertyList = this.samePropid;
-        }else if(this.fieldVisible2 === true){
+        }else if(this.diffPropertyVisiblity === true){
             this.propertyList = this.diffPropIDs;
         }
 
@@ -364,16 +399,26 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             });
     
             this.dispatchEvent(toastEvent);
-            if(this.fieldVisible1 === true){
+            if(this.samePropertyVisiblity === true){
                 this.propIdListonOppLineItem = this.samePropid;
-            }else if(this.fieldVisible2 === true){
+            }else if(this.diffPropertyVisiblity === true){
                 this.propIdListonOppLineItem = this.diffPropIDs;
             }
             this.oppLineItemOppId = this.OppId;
-            this.saveOppLineItemVisibility = true;
-            setTimeout(()=>{
-                eval("$A.get('e.force:refreshView').fire();"); 
-                this.closeAction();},1000);
+            this.oppLineItemVisibility = true;
+            this.saveDiffProdForProperty=false;
+            this.diffProductVisibility=false;
+            this.sameProductVisibility = false;
+            this.saveProduct = false;
+            this.finishVisibility = true;
+            // setTimeout(()=>{
+            //     eval("$A.get('e.force:refreshView').fire();"); 
+            //     this.closeAction();},1000);
+
+            if(this.oppLineItemVisibility == true){
+                this.OpplineItemDetails();
+            }
+            
         })
         .catch(error=>{
             this.isLoading = false;
@@ -391,19 +436,17 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                 oppId: this.OppId
             })
             .then(results =>{
-
-
                 this.template.querySelector("lightning-datatable").selectedRows=[];
                 this.isLoading = false;
                 console.log('Result --->'+JSON.stringify(results));
-                if(this.fieldVisible1 == true){
+                if(this.samePropertyVisiblity == true){
                     this.diffPropertyId = this.samePropid[this.currentSaveValue];
                     const keys = Object.keys(this.samePropidMap);
                     const key = keys.find(k => this.samePropidMap[k].value === this.diffPropertyId);
                     if(key){
                         this.showPropName = JSON.stringify(this.samePropidMap[key].label); 
                     }
-                }else if(this.fieldVisible2 === true){
+                }else if(this.diffPropertyVisiblity === true){
                     this.diffPropertyId = this.diffPropIDs[this.currentSaveValue];
                     const keys = Object.keys(this.diffPropidMap);
                     const key = keys.find(k => this.diffPropidMap[k].value === this.diffPropertyId);
@@ -417,8 +460,13 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                 if(this.currentSaveValue == this.inputvalue){
                     this.saveProdButtonLabel = 'Save Product and Finish';
                 }else if(this.currentSaveValue > this.inputvalue){
-                    this.saveOppLineItemVisibility = true;
+                    this.oppLineItemVisibility = true;
                     this.productSaveDisabled = true;
+                    this.saveDiffProdForProperty=false;
+                    this.diffProductVisibility=false;
+                    this.sameProductVisibility = false;
+                    this.saveProduct = false;
+                    this.finishVisibility = true;
                     const toastEvent = new ShowToastEvent({
                         title: 'Success!',
                         message: 'Product Record Inserted successfully',
@@ -428,16 +476,21 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                     this.dispatchEvent(toastEvent);
                     this.isLoading = false;
 
-                    if(this.fieldVisible1 === true){
+                    if(this.samePropertyVisiblity === true){
                         this.propIdListonOppLineItem = this.samePropid;
-                    }else if(this.fieldVisible2 === true){
+                    }else if(this.diffPropertyVisiblity === true){
                         this.propIdListonOppLineItem = this.diffPropIDs;
                     }
                     this.oppLineItemOppId = this.OppId;
                     refreshApex(this.wireData);
-                    setTimeout(()=>{
-                        eval("$A.get('e.force:refreshView').fire();"); 
-                        this.closeAction();},1000);
+
+                    // setTimeout(()=>{
+                    //     eval("$A.get('e.force:refreshView').fire();"); 
+                    //     this.closeAction();},1000);
+
+                    if(this.oppLineItemVisibility == true){
+                        this.OpplineItemDetails();
+                    }
                 }   
 
                 
@@ -447,5 +500,74 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                 console.log('Result --->'+JSON.stringify(error));
             })
          
+    }
+
+    OpplineItemDetails(){
+        getOppLineItemDetails({
+            oppid : this.OppId,
+            propertyList: JSON.stringify(this.propertyList)
+        })
+        .then(result =>{
+            this.isLoading = false;
+            this.oppLineItemList=result;
+
+            this.oppLineItemList= this.oppLineItemList.map(item => {
+                return {
+                    Id : item.Id,
+                    propertyName: item.Property__r.Name,
+                    productName: item.Product2.Name,
+                    OpportunityName: item.Opportunity.Name,
+                    Quantity: item.Quantity,
+                    UnitPrice: item.UnitPrice
+                }
+            });
+        })
+        .catch(error=>{
+            this.isLoading = false;
+            console.log('Error --->'+JSON.stringify(error));
+        })
+
+    }
+
+
+    handleOppLineItemSave(event) {
+        this.saveDraftValues = event.detail.draftValues;
+        const recordInputs = this.saveDraftValues.slice().map(draft => {
+            const fields = Object.assign({}, draft);
+            return { fields };
+        });
+ 
+        // Updateing the records using the UiRecordAPi
+        const promises = recordInputs.map(recordInput => updateRecord(recordInput));
+        Promise.all(promises).then(res => {
+            this.ShowToast('Success', 'Records Updated Successfully!', 'success', 'dismissable');
+            this.saveDraftValues = [];
+            return this.refresh();
+        }).catch(error => {
+            this.ShowToast('Error', 'An Error Occured!!', 'error', 'dismissable');
+        }).finally(() => {
+            this.saveDraftValues = [];
+        });
+    }
+ 
+    ShowToast(title, message, variant, mode){
+        const evt = new ShowToastEvent({
+                title: title,
+                message:message,
+                variant: variant,
+                mode: mode
+            });
+            this.dispatchEvent(evt);
+    }
+ 
+    // This function is used to refresh the table once data updated
+    async refresh() {
+        await refreshApex(this.oppLineItemList);
+    }
+
+    FinishAndClose(){
+        setTimeout(()=>{
+        eval("$A.get('e.force:refreshView').fire();"); 
+        this.closeAction();},1000);
     }
 }
