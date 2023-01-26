@@ -107,16 +107,21 @@
 				</template>
 			  </template>
 			</template>
-             <div class="pricebook-picklist-css">
-				<lightning-combobox name="pricebooks1" label="What Pricebook?" value={pricebookId} options={pricebookoptions}
-				onchange={handlePricebookchoice} disabled={selectPricebookdisabled}>
-			    </lightning-combobox>
-				<div>
-					<lightning-radio-group name="SameradioGroup" label="Do they all have the same products?"
-						options={options} value={value} type="radio" onchange={handleProdChoice} disabled={radioGroupForProductDisabled}>
-					</lightning-radio-group>
+			<template if:true={priceBookVisibility}>
+				<div class="pricebook-picklist-css">
+					<lightning-combobox name="pricebooks1" label="What Pricebook?" value={pricebookId} options={pricebookoptions}
+					onchange={handlePricebookchoice} disabled={selectPricebookdisabled}>
+					</lightning-combobox>
+					<br/>
+					<div>
+						<lightning-radio-group name="SameradioGroup" label="Do they all have the same products?"
+							options={options} value={value} type="radio" onchange={handleProdChoice} disabled={radioGroupForProductDisabled}>
+						</lightning-radio-group>
+					</div>
 				</div>
-			 </div>
+				<br/>
+			</template>
+             
 			
 			<template if:true={saveProduct}>
 						<lightning-datatable data={productList} columns={columns} key-field="id"
@@ -124,7 +129,6 @@
 			</template>
 				<template if:true={saveDiffProdForProperty}>
 					<div class="property-name-for-product">
-						<br/>
 						<p>Select products for <strong>{showPropName}</strong></p><br/>
 					</div>
 					<lightning-datatable data={productList} columns={columns} key-field="id"

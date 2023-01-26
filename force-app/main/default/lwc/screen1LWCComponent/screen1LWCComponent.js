@@ -66,20 +66,25 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     @track name;
     @track samePropertyVisiblity = false;
     @track diffPropertyVisiblity = false;
+    @track priceBookVisibility = true;
+    @track selectPricebookdisabled = true;
+    @track sameProductVisibility = false;
+    @track diffProductVisibility = false;
     @track saveProperty=true;
     @track saveProduct = false;
+    @track productSaveDisabled = false;
+    @track radioGroupForProductDisabled = true;
+    @track saveDiffProdForProperty = false;
+    @track oppLineItemVisibility = false;
+    @track finishVisibility = false;
     @track input;
     @track inputvalue;
     @track isLoading = false;
-    @track selectPricebookdisabled = true;
     //data = [];
     @track properties = [];
     @track diffPropIDs = [];
     @track priceOptions;
     @track pricebookId;
-    @track sameProductVisibility = false;
-    @track diffProductVisibility = false;
-    @track productSaveDisabled = false;
     @track columns = columns;
     @track OppLineItemColumns = OppLineItemColumns;
     @track productList = [];
@@ -89,26 +94,24 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     @track diffPropidMap = [];
     @track propertyList;
     priceBookData;
-    @track radioGroupForProductDisabled = true;
-    @track saveDiffProdForProperty = false;
     @track PropertyNameToSaveProduct = [];
     wireData;
     @track currentSaveValue = 1;
     @track saveProdButtonLabel = '';
     @track diffPropertyId;
     @track showPropName;
-    @track oppLineItemVisibility = false;
     @track oppLineItemList;
     @track oppLineItemListForName;
     propIdListonOppLineItem = [];
     oppLineItemOppId;
     saveDraftValues;
-    @track finishVisibility = false;
 
 
     connectedCallback(){
         loadStyle(this, modal);
+        this.OpplineItemDetails();
         this.OppId = this.recordId;
+        
         
     }
 
@@ -410,6 +413,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             this.diffProductVisibility=false;
             this.sameProductVisibility = false;
             this.saveProduct = false;
+            this.priceBookVisibility = false;
             this.finishVisibility = true;
             // setTimeout(()=>{
             //     eval("$A.get('e.force:refreshView').fire();"); 
@@ -466,6 +470,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                     this.diffProductVisibility=false;
                     this.sameProductVisibility = false;
                     this.saveProduct = false;
+                    this.priceBookVisibility = false;
                     this.finishVisibility = true;
                     const toastEvent = new ShowToastEvent({
                         title: 'Success!',
@@ -503,6 +508,11 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     }
 
     OpplineItemDetails(){
+        if(this.samePropertyVisiblity === true){
+            this.propertyList = this.samePropid;
+        }else if(this.diffPropertyVisiblity === true){
+            this.propertyList = this.diffPropIDs;
+        }
         getOppLineItemDetails({
             oppid : this.OppId,
             propertyList: JSON.stringify(this.propertyList)
@@ -510,7 +520,6 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         .then(result =>{
             this.isLoading = false;
             this.oppLineItemList=result;
-
             this.oppLineItemList= this.oppLineItemList.map(item => {
                 return {
                     Id : item.Id,
@@ -531,6 +540,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
 
 
     handleOppLineItemSave(event) {
+        this.isLoading = true;
         this.saveDraftValues = event.detail.draftValues;
         const recordInputs = this.saveDraftValues.slice().map(draft => {
             const fields = Object.assign({}, draft);
@@ -541,12 +551,15 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         const promises = recordInputs.map(recordInput => updateRecord(recordInput));
         Promise.all(promises).then(res => {
             this.ShowToast('Success', 'Records Updated Successfully!', 'success', 'dismissable');
+            refreshApex(this.oppLineItemList);
             this.saveDraftValues = [];
             return this.refresh();
         }).catch(error => {
+            this.isLoading=false;
             this.ShowToast('Error', 'An Error Occured!!', 'error', 'dismissable');
         }).finally(() => {
             this.saveDraftValues = [];
+            this.isLoading=false;
         });
     }
  
@@ -562,7 +575,9 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
  
     // This function is used to refresh the table once data updated
     async refresh() {
-        await refreshApex(this.oppLineItemList);
+        await this.OpplineItemDetails();
+        this.isLoading=false;
+        //await refreshApex(this.oppLineItemList);
     }
 
     FinishAndClose(){
