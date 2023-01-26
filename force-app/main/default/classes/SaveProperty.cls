@@ -72,12 +72,6 @@ public class SaveProperty {
         }
     }
 
-    @AuraEnabled(cacheable=true)
-    public static void SaveProduct(){
-        
-    }
-
-
     @AuraEnabled
 	public static List<Id> insertProduct(String priceBookId,String productlist,String propertyList,String oppId){
 		Map<ID,PricebookEntry> productPricebookMap = new Map<ID,PricebookEntry>();

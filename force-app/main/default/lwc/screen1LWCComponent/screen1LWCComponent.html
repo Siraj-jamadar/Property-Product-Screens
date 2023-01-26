@@ -113,11 +113,13 @@
 					onchange={handlePricebookchoice} disabled={selectPricebookdisabled}>
 					</lightning-combobox>
 					<br/>
+					<template if:true={prodchoiceVisibility}>
 					<div>
 						<lightning-radio-group name="SameradioGroup" label="Do they all have the same products?"
 							options={options} value={value} type="radio" onchange={handleProdChoice} disabled={radioGroupForProductDisabled}>
 						</lightning-radio-group>
 					</div>
+				</template>
 				</div>
 				<br/>
 			</template>
@@ -137,14 +139,21 @@
 
 			<!-- Opportunity Line Item Code -->
 			<template if:true={oppLineItemVisibility}>
-				<lightning-datatable class="my-data-table" key-field="Id"
+				<lightning-datatable key-field="Id"
 				                     data={oppLineItemList} 
 									 columns={OppLineItemColumns} 
 									 onsave={handleOppLineItemSave}
 									 draft-values={saveDraftValues} 
 									 hide-checkbox-column 
-									 show-row-number-column>
+									 show-row-number-column
+									 onclick={handleClick}>
  				</lightning-datatable>
+				 <template if:true={noteVisibility}>
+				<div>
+					<br/>
+					<p style="color: red"><b>* Note : Please save the changes by clicking Save button before finishing the process</b></p>
+				</div>
+				</template>
 			</template>
 
 

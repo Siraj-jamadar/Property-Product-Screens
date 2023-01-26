@@ -19,22 +19,21 @@ import { updateRecord } from 'lightning/uiRecordApi';
 
 const OppLineItemColumns = [
     {
+        label: 'Opportunity',
+        fieldName: 'OpportunityName',
+        type: 'text',
+       // typeAttributes: { label: { fieldName: 'Opportunity.Name' }, target: '_blank' }
+    },{
+        label: 'Property',
+        fieldName: 'propertyName',
+        type: 'text',
+       // typeAttributes: { label: { fieldName: 'Property__r.Name' }, target: '_blank' }
+    },{
         label: 'Product',
         fieldName: 'productName',
         type: 'text',
         //typeAttributes: { label: { fieldName: 'Product2.Name' }, target: '_blank' }
     },{
-        label: 'Opportunity',
-        fieldName: 'OpportunityName',
-        type: 'text',
-       // typeAttributes: { label: { fieldName: 'Opportunity.Name' }, target: '_blank' }
-    }, {
-        label: 'Property',
-        fieldName: 'propertyName',
-        type: 'text',
-       // typeAttributes: { label: { fieldName: 'Property__r.Name' }, target: '_blank' }
-    },
-     {
         label: 'Quantity',
         fieldName: 'Quantity',
         type: 'double',
@@ -70,6 +69,8 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     @track selectPricebookdisabled = true;
     @track sameProductVisibility = false;
     @track diffProductVisibility = false;
+    @track noteVisibility = false;
+    @track prodchoiceVisibility = false;
     @track saveProperty=true;
     @track saveProduct = false;
     @track productSaveDisabled = false;
@@ -109,9 +110,8 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
 
     connectedCallback(){
         loadStyle(this, modal);
-        this.OpplineItemDetails();
         this.OppId = this.recordId;
-        
+        this.refreshData();
         
     }
 
@@ -145,11 +145,10 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     }
 
     //get all products
-    @wire(getPricebookfromOpp, { oppId: '$recordId'})
-        
-    wireGetPriceBooklist({ data, error }) {
-        this.wireData=data;
-    if (data) {
+    @wire(getPricebookfromOpp, { oppId: '$recordId'})  
+    wireGetPriceBooklist(result) {
+        this.wireData=result;
+    if (result.data) {
         let arrlist=[];
         arrlist.push({label: this.wireData.Name, value: this.wireData.Id})
         this.priceOptions = arrlist;
@@ -157,6 +156,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         if(this.pricebookId != undefined){
            this.selectPricebookdisabled=true;
         }
+        this.radioGroupForProductDisabled = false;
        
     } else {
         getPriceBook()
@@ -208,7 +208,6 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             });
             this.saveProperty=false;
             this.saveProduct = true;
-            this.radioGroupForProductDisabled = false;
         }
     }
 
@@ -226,7 +225,6 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         }
         this.saveProperty=false;
         this.saveProduct = true;
-        this.radioGroupForProductDisabled = false;
     }
 
     handleSuccessSamePropDetails (event) {
@@ -249,7 +247,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                     }
                     this.samePropid= arrOfPropId;
                     this.isLoading = false; 
-                   
+                    this.prodchoiceVisibility = true;
                     const toastEvent = new ShowToastEvent({
                     title: 'Success!',
                     message: 'Property Record Inserted successfully',
@@ -303,6 +301,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
         this.saveProperty=false;
         this.saveProduct = true;
         this.isLoading = false; 
+        this.prodchoiceVisibility = true;
         const toastEvent = new ShowToastEvent({
             title: 'Success!',
             message: 'Property Record Inserted successfully',
@@ -314,6 +313,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
 
     handlePricebookchoice(event) {
         this.pricebookId = event.target.value;
+        this.radioGroupForProductDisabled = false;
       }
 
       // for second radio button
@@ -415,6 +415,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             this.saveProduct = false;
             this.priceBookVisibility = false;
             this.finishVisibility = true;
+            this.prodchoiceVisibility = false;
             // setTimeout(()=>{
             //     eval("$A.get('e.force:refreshView').fire();"); 
             //     this.closeAction();},1000);
@@ -472,6 +473,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                     this.saveProduct = false;
                     this.priceBookVisibility = false;
                     this.finishVisibility = true;
+                    this.prodchoiceVisibility = false;
                     const toastEvent = new ShowToastEvent({
                         title: 'Success!',
                         message: 'Product Record Inserted successfully',
@@ -523,9 +525,9 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             this.oppLineItemList= this.oppLineItemList.map(item => {
                 return {
                     Id : item.Id,
+                    OpportunityName: item.Opportunity.Name,
                     propertyName: item.Property__r.Name,
                     productName: item.Product2.Name,
-                    OpportunityName: item.Opportunity.Name,
                     Quantity: item.Quantity,
                     UnitPrice: item.UnitPrice
                 }
@@ -553,6 +555,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
             this.ShowToast('Success', 'Records Updated Successfully!', 'success', 'dismissable');
             refreshApex(this.oppLineItemList);
             this.saveDraftValues = [];
+            this.noteVisibility = false;
             return this.refresh();
         }).catch(error => {
             this.isLoading=false;
@@ -583,6 +586,18 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     FinishAndClose(){
         setTimeout(()=>{
         eval("$A.get('e.force:refreshView').fire();"); 
-        this.closeAction();},1000);
+        this.closeAction();},100);
+    }
+
+    // handleRowAction(){
+    //     console.log('Here in handle row action');
+    // }
+
+    handleClick(){
+        this.noteVisibility = true;
+    }
+
+    refreshData(){
+        return refreshApex(this.wireData);
     }
 }
