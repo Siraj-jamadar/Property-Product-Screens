@@ -9,7 +9,7 @@ public class SaveProperty {
 
             for (integer i=2; i<=quantity; i++ ){
                 Property__c proprec = new Property__c();
-                proprec.Name = propertyrec.Name+'_000'+i;
+                proprec.Name = propertyrec.Name+'-0'+i;
                 proprec.Opportunity__c  =propertyrec.Opportunity__c;
                 proprec.Type__c = propertyrec.Type__c;
                 proprec.Primary_Building_Function__c	= propertyrec.Primary_Building_Function__c;
@@ -20,7 +20,7 @@ public class SaveProperty {
                 propertylist.add(proprec);
             }
 
-            propertyrec.Name = propertyrec.Name + '_0001';
+            propertyrec.Name = propertyrec.Name + '-01';
             propertylist.add(propertyrec);
 
             upsert propertylist;
@@ -117,13 +117,11 @@ public class SaveProperty {
 
 @AuraEnabled
 	public static List<Id> saveDiffProducts(String priceBookId,String productlist,String propertyList,String oppId){
-        system.debug('Property id--->'+propertyList);
         Map<ID,PricebookEntry> productPricebookMap = new Map<ID,PricebookEntry>();
 		List<OpportunityLineItem> oli = new List<OpportunityLineItem>();
         List<Id> oliIdList = new List<Id>();
 
         propertyList= propertyList.replace('\"',''); 
-        system.debug('Property id--->'+propertyList);
         productlist = productlist.replace('[','').replace(']',''); 
         productlist = productlist.replace('\"',''); 
         List<String> ProdList = productlist.split(',');  

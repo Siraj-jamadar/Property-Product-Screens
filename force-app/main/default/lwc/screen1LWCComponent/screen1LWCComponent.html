@@ -14,7 +14,7 @@
 			  <hr>
 			  <div>
 				  <lightning-radio-group class="radio-combo-inline" name="radioGroup"
-					  label="Are there property details that are common to all of them?" options={options} value={value}
+					  label="PROPERTIES: Same details on all properties?" options={options} value={value}
 					  type="radio" onchange={handleChoice}></lightning-radio-group>
 			  </div>
   
@@ -109,13 +109,13 @@
 			</template>
 			<template if:true={priceBookVisibility}>
 				<div class="pricebook-picklist-css">
-					<lightning-combobox name="pricebooks1" label="What Pricebook?" value={pricebookId} options={pricebookoptions}
+					<lightning-combobox name="pricebooks1" label="Pricebook" value={pricebookId} options={pricebookoptions}
 					onchange={handlePricebookchoice} disabled={selectPricebookdisabled}>
 					</lightning-combobox>
 					<br/>
 					<template if:true={prodchoiceVisibility}>
 					<div>
-						<lightning-radio-group name="SameradioGroup" label="Do they all have the same products?"
+						<lightning-radio-group name="SameradioGroup" label="PRODUCTS: Same products for all properties?"
 							options={options} value={value} type="radio" onchange={handleProdChoice} disabled={radioGroupForProductDisabled}>
 						</lightning-radio-group>
 					</div>
@@ -151,7 +151,7 @@
 				 <template if:true={noteVisibility}>
 				<div>
 					<br/>
-					<p style="color: red"><b>* Note : Please save the changes by clicking Save button before finishing the process</b></p>
+					<p style="color: red"><b>＊ Note : Please save the changes by clicking Save button before finishing the process</b></p>
 				</div>
 				</template>
 			</template>

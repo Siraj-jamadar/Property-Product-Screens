@@ -147,8 +147,9 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
     //get all products
     @wire(getPricebookfromOpp, { oppId: '$recordId'})  
     wireGetPriceBooklist(result) {
-        this.wireData=result;
+        
     if (result.data) {
+        this.wireData=result.data;
         let arrlist=[];
         arrlist.push({label: this.wireData.Name, value: this.wireData.Id})
         this.priceOptions = arrlist;
@@ -169,6 +170,7 @@ export default class Screen1LWCComponent extends NavigationMixin(LightningElemen
                     arr.push({ label: results3[i].Name, value: results3[i].Id })
                 }
                 this.priceOptions = arr;
+                refreshApex(this.wireData);
             })
     }
     }
